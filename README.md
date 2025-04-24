@@ -42,9 +42,7 @@ Blind Dog — это лёгкое веб-приложение, которое п
 
 * Всё это реализовано с помощью нативного HTML5 Canvas и JavaScript. Весь код и логика работы написана генеративным ИИ.
 
-js
-Копировать
-Редактировать
+```js
 function generateShuffledIndices(length, key) {
   const indices = Array.from({ length }, (_, i) => i);
   let seed = hashStringToNumber(key);
@@ -57,7 +55,8 @@ function generateShuffledIndices(length, key) {
     [indices[i], indices[j]] = [indices[j], indices[i]];
   }
   return indices;
-}
+}```
+
 ### ✨ Интерфейс и UX
 * Приложение выполнено в тёмном неоновом стиле, с плавной анимацией кнопок и простым управлением:
 
