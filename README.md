@@ -55,7 +55,8 @@ function generateShuffledIndices(length, key) {
     [indices[i], indices[j]] = [indices[j], indices[i]];
   }
   return indices;
-}```
+}
+```
 
 ### ✨ Интерфейс и UX
 * Приложение выполнено в тёмном неоновом стиле, с плавной анимацией кнопок и простым управлением:
