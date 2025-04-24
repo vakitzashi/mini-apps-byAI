@@ -1,0 +1,200 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blind Dog</title>
+  <style>
+    body {
+      background-color: #121212;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+    }
+    h1 {
+      text-shadow: 0 0 10px #00ffcc;
+    }
+    .controls {
+      margin: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 10;
+    }
+    .input-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    input[type="file"],
+    input[type="number"],
+    input[type="text"] {
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      padding: 14px;
+      margin: 5px;
+      color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 0 10px #00ffcc33;
+      font-size: 18px;
+    }
+    .button-row {
+      display: flex;
+      gap: 20px;
+      margin: 15px 0;
+    }
+    button {
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      padding: 16px 24px;
+      font-size: 18px;
+      color: #fff;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+    #encryptBtn {
+      box-shadow: 0 0 15px #00ff88;
+    }
+    #decryptBtn {
+      box-shadow: 0 0 15px #ff4444;
+    }
+    #saveBtn {
+      box-shadow: 0 0 15px #4488ff;
+      margin-top: 15px;
+    }
+    #randomKeyBtn {
+      padding: 12px 16px;
+      font-size: 20px;
+      box-shadow: 0 0 10px #ffaa00;
+    }
+    canvas {
+      border: 1px solid #333;
+      box-shadow: 0 0 20px #00ffcc55;
+      margin-top: 20px;
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h1>Blind Dog</h1>
+  <div class="controls">
+    <input type="file" id="upload" accept="image/*" />
+    <div class="input-group">
+      <input type="text" id="shiftValue" placeholder="🔑 Enter key" />
+      <button id="randomKeyBtn" onclick="generateRandomKey()">🔀</button>
+    </div>
+    <div class="button-row">
+      <button id="encryptBtn" onclick="encryptImage()">🔒 Encrypt</button>
+      <button id="decryptBtn" onclick="decryptImage()">🔓 Decrypt</button>
+    </div>
+    <button id="saveBtn" onclick="saveImage()">💾 Save Image</button>
+  </div>
+  <canvas id="canvas"></canvas>  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const upload = document.getElementById('upload');
+
+    upload.addEventListener('change', e => {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        const img = new Image();
+        img.onload = function () {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function generateShuffledIndices(length, key) {
+      const indices = Array.from({ length }, (_, i) => i);
+      let seed = hashStringToNumber(key);
+      function random() {
+        const x = Math.sin(seed++) * 10000;
+        return x - Math.floor(x);
+      }
+      for (let i = length - 1; i > 0; i--) {
+        const j = Math.floor(random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+      return indices;
+    }
+
+    function hashStringToNumber(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return Math.abs(hash);
+    }
+
+    function encryptImage() {
+      const key = document.getElementById('shiftValue').value;
+      const { width, height } = canvas;
+      const src = ctx.getImageData(0, 0, width, height);
+      const dst = ctx.createImageData(width, height);
+      const totalPixels = width * height;
+      const shuffled = generateShuffledIndices(totalPixels, key);
+
+      for (let i = 0; i < totalPixels; i++) {
+        const srcIndex = i * 4;
+        const dstIndex = shuffled[i] * 4;
+        dst.data[dstIndex] = src.data[srcIndex];
+        dst.data[dstIndex + 1] = src.data[srcIndex + 1];
+        dst.data[dstIndex + 2] = src.data[srcIndex + 2];
+        dst.data[dstIndex + 3] = src.data[srcIndex + 3];
+      }
+
+      ctx.putImageData(dst, 0, 0);
+    }
+
+    function decryptImage() {
+      const key = document.getElementById('shiftValue').value;
+      const { width, height } = canvas;
+      const src = ctx.getImageData(0, 0, width, height);
+      const dst = ctx.createImageData(width, height);
+      const totalPixels = width * height;
+      const shuffled = generateShuffledIndices(totalPixels, key);
+
+      for (let i = 0; i < totalPixels; i++) {
+        const dstIndex = i * 4;
+        const srcIndex = shuffled[i] * 4;
+        dst.data[dstIndex] = src.data[srcIndex];
+        dst.data[dstIndex + 1] = src.data[srcIndex + 1];
+        dst.data[dstIndex + 2] = src.data[srcIndex + 2];
+        dst.data[dstIndex + 3] = src.data[srcIndex + 3];
+      }
+
+      ctx.putImageData(dst, 0, 0);
+    }
+
+    function saveImage() {
+      const key = document.getElementById('shiftValue').value.replace(/\W/g, '');
+      const link = document.createElement('a');
+      link.download = `scrambled_${key || 'image'}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+
+    function generateRandomKey() {
+      const length = Math.floor(Math.random() * 3) + 4;
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let result = '';
+      for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      document.getElementById('shiftValue').value = result;
+    }
+  </script></body>
+</html>

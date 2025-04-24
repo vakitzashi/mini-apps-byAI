@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2048 Game</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #000000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    color: #ffffff;
+  }
+  .game-container {
+    background: #111111;
+    padding: 10px;
+    border-radius: 10px;
+    width: 500px;
+    height: 500px;
+    box-sizing: border-box;
+    position: relative;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 10px;
+    width: 100%;
+    height: 100%;
+  }
+  .cell {
+    background: #222222;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 36px;
+    font-weight: bold;
+    color: #cccccc;
+    box-shadow: inset 0 0 10px rgba(0, 255, 255, 0.3);
+  }
+  .tile {
+    position: absolute;
+    width: calc(25% - 10px);
+    height: calc(25% - 10px);
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 36px;
+    font-weight: bold;
+    transition: transform 0.2s ease-in-out;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+  }
+  .tile-2 { background: #ff004d; color: #ffffff; }
+  .tile-4 { background: #ff4d00; color: #ffffff; }
+  .tile-8 { background: #ff9900; color: white; }
+  .tile-16 { background: #ffcc00; color: white; }
+  .tile-32 { background: #ffff00; color: black; }
+  .tile-64 { background: #ccff00; color: black; }
+  .tile-128 { background: #99ff00; color: black; }
+  .tile-256 { background: #66ff00; color: black; }
+  .tile-512 { background: #33ff00; color: black; }
+  .tile-1024 { background: #00ff33; color: black; }
+  .tile-2048 { background: #00ff99; color: black; }
+</style>
+</head>
+<body>
+<div class="game-container">
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const grid = document.getElementById('grid');
+  const boardSize = 4;
+  let board = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
+  let tiles = [];
+
+  function createGrid() {
+    for (let i = 0; i < boardSize * boardSize; i++) {
+      const cell = document.createElement('div');
+      cell.classList.add('cell');
+      grid.appendChild(cell);
+    }
+  }
+
+  function addTile() {
+    const emptyCells = [];
+    board.forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        if (!cell) emptyCells.push({ rowIndex, colIndex });
+      });
+    });
+
+    if (emptyCells.length > 0) {
+      const { rowIndex, colIndex } = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+      const value = Math.random() < 0.9 ? 2 : 4;
+      board[rowIndex][colIndex] = value;
+
+      const tile = document.createElement('div');
+      tile.classList.add('tile', `tile-${value}`);
+      tile.textContent = value;
+      tile.style.top = `${rowIndex * 25}%`;
+      tile.style.left = `${colIndex * 25}%`;
+      grid.appendChild(tile);
+      tiles.push(tile);
+    }
+  }
+
+  function moveTiles(direction) {
+    let moved = false;
+    if (direction === 'up' || direction === 'down') {
+      for (let col = 0; col < boardSize; col++) {
+        const column = [];
+        for (let row = 0; row < boardSize; row++) {
+          column.push(board[direction === 'up' ? row : boardSize - 1 - row][col]);
+        }
+        const newColumn = merge(column);
+        for (let row = 0; row < boardSize; row++) {
+          board[direction === 'up' ? row : boardSize - 1 - row][col] = newColumn[row];
+        }
+        moved = moved || !arraysEqual(column, newColumn);
+      }
+    } else if (direction === 'left' || direction === 'right') {
+      for (let row = 0; row < boardSize; row++) {
+        const currentRow = board[row].slice();
+        const newRow = merge(direction === 'left' ? currentRow : currentRow.reverse());
+        if (direction === 'right') newRow.reverse();
+        board[row] = newRow;
+        moved = moved || !arraysEqual(currentRow, newRow);
+      }
+    }
+
+    if (moved) {
+      updateUI();
+      addTile();
+      checkGameOver();
+    }
+  }
+
+  function merge(row) {
+    const filteredRow = row.filter(cell => cell !== null);
+    for (let i = 0; i < filteredRow.length - 1; i++) {
+      if (filteredRow[i] === filteredRow[i + 1]) {
+        filteredRow[i] *= 2;
+        filteredRow[i + 1] = null;
+      }
+    }
+    return filteredRow.filter(cell => cell !== null).concat(Array(boardSize - filteredRow.filter(cell => cell !== null).length).fill(null));
+  }
+
+  function arraysEqual(a, b) {
+    return a.length === b.length && a.every((val, index) => val === b[index]);
+  }
+
+  function updateUI() {
+    tiles.forEach(tile => tile.remove());
+    tiles = [];
+    board.forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        if (cell) {
+          const tile = document.createElement('div');
+          tile.classList.add('tile', `tile-${cell}`);
+          tile.textContent = cell;
+          tile.style.top = `${rowIndex * 25}%`;
+          tile.style.left = `${colIndex * 25}%`;
+          grid.appendChild(tile);
+          tiles.push(tile);
+        }
+      });
+    });
+  }
+
+  function checkGameOver() {
+    let hasEmptyCell = false;
+    for (let row = 0; row < boardSize; row++) {
+      for (let col = 0; col < boardSize; col++) {
+        if (!board[row][col]) {
+          hasEmptyCell = true;
+        }
+        if (
+          (row > 0 && board[row][col] === board[row - 1][col]) ||
+          (row < boardSize - 1 && board[row][col] === board[row + 1][col]) ||
+          (col > 0 && board[row][col] === board[row][col - 1]) ||
+          (col < boardSize - 1 && board[row][col] === board[row][col + 1])
+        ) {
+          return;
+        }
+      }
+    }
+    if (!hasEmptyCell) {
+      alert('Game Over!');
+    }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    switch (e.key) {
+      case 'ArrowUp':
+        moveTiles('up');
+        break;
+      case 'ArrowDown':
+        moveTiles('down');
+        break;
+      case 'ArrowLeft':
+        moveTiles('left');
+        break;
+      case 'ArrowRight':
+        moveTiles('right');
+        break;
+    }
+  });
+
+  createGrid();
+  addTile();
+  addTile();
+});
+</script>
+</body>
+</html>

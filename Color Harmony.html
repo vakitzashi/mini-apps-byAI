@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор цветовых сочетаний</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #121212;
+            color: #ffffff;
+        }
+        .color-box {
+            width: 50px;
+            height: 50px;
+            display: inline-block;
+            margin: 10px;
+            border-radius: 5px;
+            border: 2px solid #ffffff33;
+        }
+        .container {
+            margin-top: 20px;
+        }
+        h1, h2 {
+            color: #f1f1f1;
+        }
+        input[type="color"] {
+            background: none;
+            border: 2px solid #ffffff33;
+            border-radius: 5px;
+            padding: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Выбор цвета и цветовых сочетаний</h1>
+    <input type="color" id="colorPicker" value="#ff0000">
+    <div class="container">
+        <h2>Дополнительный цвет</h2>
+        <div id="complementary" class="color-box"></div>
+    </div>
+    <div class="container">
+        <h2>Аналоговые цвета</h2>
+        <div id="analogous1" class="color-box"></div>
+        <div id="analogous2" class="color-box"></div>
+    </div>
+    <div class="container">
+        <h2>Триадные цвета</h2>
+        <div id="triadic1" class="color-box"></div>
+        <div id="triadic2" class="color-box"></div>
+    </div>
+    <script>
+        function getComplementary(hex) {
+            return "#" + (0xFFFFFF ^ parseInt(hex.substring(1), 16)).toString(16).padStart(6, "0");
+        }
+
+        function getAnalogous(hex) {
+            let h = parseInt(hex.substring(1), 16);
+            return [
+                "#" + ((h + 0x332211) & 0xFFFFFF).toString(16).padStart(6, "0"),
+                "#" + ((h - 0x332211) & 0xFFFFFF).toString(16).padStart(6, "0")
+            ];
+        }
+
+        function getTriadic(hex) {
+            let h = parseInt(hex.substring(1), 16);
+            return [
+                "#" + ((h + 0x550055) & 0xFFFFFF).toString(16).padStart(6, "0"),
+                "#" + ((h - 0x550055) & 0xFFFFFF).toString(16).padStart(6, "0")
+            ];
+        }
+
+        document.getElementById("colorPicker").addEventListener("input", function () {
+            let color = this.value;
+            document.getElementById("complementary").style.backgroundColor = getComplementary(color);
+            let analogous = getAnalogous(color);
+            document.getElementById("analogous1").style.backgroundColor = analogous[0];
+            document.getElementById("analogous2").style.backgroundColor = analogous[1];
+            let triadic = getTriadic(color);
+            document.getElementById("triadic1").style.backgroundColor = triadic[0];
+            document.getElementById("triadic2").style.backgroundColor = triadic[1];
+        });
+
+        // Инициализация на загрузке
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById("colorPicker").dispatchEvent(new Event("input"));
+        });
+    </script>
+</body>
+</html>

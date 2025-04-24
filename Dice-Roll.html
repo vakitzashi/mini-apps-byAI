@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dice Roller</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+      background-color: black;
+      color: white;
+    }
+    .dice-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .dice {
+      width: 60px;
+      height: 60px;
+      margin: 0 10px;
+      background-color: #f9f9f9;
+      border: 2px solid #333;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      font-weight: bold;
+      animation: roll 0.5s ease-in-out;
+    }
+    @keyframes roll {
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(90deg); }
+      50% { transform: rotate(180deg); }
+      75% { transform: rotate(270deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .even {
+      color: green;
+    }
+    .odd {
+      color: red;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .total {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>2D Dice Roller</h1>
+  <div>
+    <label for="dice-count">How many dice (1-6)? </label>
+    <input type="number" id="dice-count" min="1" max="6" value="1">
+    <button onclick="rollDice()">Roll</button>
+  </div>
+  <div class="dice-container" id="dice-container"></div>
+  <div class="total" id="total">Total: 0</div>
+
+  <script>
+    function rollDice() {
+      const count = parseInt(document.getElementById('dice-count').value);
+      if (count < 1 || count > 6 || isNaN(count)) {
+        alert("Please enter a number between 1 and 6.");
+        return;
+      }
+
+      const container = document.getElementById('dice-container');
+      container.innerHTML = ''; // Clear previous dice
+
+      let total = 0;
+
+      for (let i = 0; i < count; i++) {
+        const diceDiv = document.createElement('div');
+        diceDiv.classList.add('dice');
+        diceDiv.textContent = '...'; // Placeholder before rolling
+        container.appendChild(diceDiv);
+
+        setTimeout(() => {
+          const result = Math.floor(Math.random() * 6) + 1;
+          total += result;
+
+          diceDiv.textContent = result;
+          if (result % 2 === 0) {
+            diceDiv.classList.add('even');
+          } else {
+            diceDiv.classList.add('odd');
+          }
+
+          document.getElementById('total').textContent = `Total: ${total}`;
+        }, 500); // Match the duration of the animation
+      }
+    }
+  </script>
+</body>
+</html>
